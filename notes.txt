@@ -1,0 +1,18 @@
+https://www.noritake-itron.jp/products/module/gu-d/?product_id=15
+these type of pages, has a file id for each download
+
+Warning: requests.post(data=dat) is not the same as requests.post(json=dat)
+
+to download files behind a login: post request to https://www.noritake-itron.jp/spec/download/ with this body: 
+{"_method": "POST", "spec_code": "{id}", "catalog": "0", "demo": "0", "webdemo": "0", "mitsumori": "0", "message": "", "download": "agree and download"}
+then just send a GET request to
+https://www.noritake-itron.jp/spec/spec_dl_func
+(using the same session?)
+(the GET request part might not be neccessary...)
+
+https://www.noritake-itron.jp/search?limit=100
+
+https://www.noritake-itron.jp/contact/spec_dl_func_en.php?code=cu16029-te200k
+
+https://www.noritake-itron.jp/cs/dl_spec/
+
