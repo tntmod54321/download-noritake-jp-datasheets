@@ -4,6 +4,7 @@ run `download_datasheets.py` to go through those product pages and download prod
 
 run `download_datasheets_onepage.py` to download all the datasheets at `https://www.noritake-itron.jp/cs/dl_spec/` (doesn't get everything)
 
+run `scrape_wbm_download_ids.py` to scrape the wbm for download ids and save them
+
 todo:  
-search wbm for other product download ids to try  
 actually archive the main product pages (incl images)  

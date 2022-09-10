@@ -85,7 +85,6 @@ def main():
 		urls.append({"url": url, "timestamp": timestamp})
 	
 	print(f"grabbing {len(urls)} noritake product pages from the wayback machine")
-	urls = [urls[16], urls[17]] # small test list
 	spec_codes=[]
 	loop = asyncio.new_event_loop()
 	asyncio.set_event_loop(loop)
