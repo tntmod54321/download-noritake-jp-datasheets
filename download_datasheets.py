@@ -4,10 +4,12 @@ from bs4 import BeautifulSoup
 import os
 import time
 from urllib.parse import urlparse
-from os.path import isfile, split, normpath
+from os.path import isdir, isfile, split, normpath
 import re
 
 def writeFile(filename, path, binary, overwrite=False):
+	if not isdir(path): os.makedirs(path)
+	
 	if overwrite:
 		print(f"writing {filename}")
 		with open(path+filename, "wb") as f:
