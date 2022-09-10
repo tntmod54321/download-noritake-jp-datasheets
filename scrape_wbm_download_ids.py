@@ -3,15 +3,15 @@ from download_datasheets import get_specdl_file, writeFile
 from urllib.parse import urlparse
 from os import listdir
 from os.path import isfile, isdir, splitext, split, join
-import asyncio
-import aiohttp
 from bs4 import BeautifulSoup
 import time
+import sys
+import asyncio
+import aiohttp
 
-output_dir = "./wbm_datasheet_ids"
-normal_downloads_dir = "./products" # search this dir for downloads to skip
-cdx_url = "https://web.archive.org/cdx/search/cdx?url=noritake-itron.jp/eng/products/module*"
-wbm_url = "https://web.archive.org/web/{}/{}" # timestamp - url
+def writemsg(msg):
+	sys.stdout.write(msg)
+	sys.stdout.flush()
 
 def find_files(fdir, fext):
 	directories = [fdir]
@@ -32,7 +32,36 @@ def find_files(fdir, fext):
 	# print("found {} {} files in {}".format(len(files2), fext, fdir))
 	return files2
 
+async def download_page(session, url, retries, headers):
+	await asyncio.sleep(0.5) # be nice to IA ^-^
+	response_c = 600
+	for attempt in range(0, retries+1):
+		async with session.get(url, headers=headers) as response:
+			response_c=response.status
+			if response_c==200:
+				writemsg('.')
+				return {"page": await response.text(), "url": url}
+			else: continue
+
+async def fast_downloader(urls, retries, headers, timeout, max_concurr_downloads):
+	tasks=[]
+	connector = aiohttp.TCPConnector(limit=max_concurr_downloads)
+	async with aiohttp.ClientSession(trust_env=True, timeout=timeout, connector=connector) as session:
+		for url in urls:
+			task = download_page(session, url["url"], retries, headers)
+			tasks.append(task)
+		tasks = await asyncio.gather(*tasks, return_exceptions=True)
+	return tasks
+
 def main():
+	output_dir = "./wbm_datasheet_ids"
+	normal_downloads_dir = "./products" # search this dir for downloads to skip
+	cdx_url = "https://web.archive.org/cdx/search/cdx?url=noritake-itron.jp/eng/products/module*"
+	wbm_url = "https://web.archive.org/web/{}/{}" # timestamp - url
+	max_concurr_downloads = 10
+	timeout = aiohttp.ClientTimeout(sock_connect=1.5, sock_read=30, total=1200)
+	retries = 10
+	
 	headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36 RuxitSynthetic/1.0 v2238161363 t3111481328944777029 athfa3c3975 altpub cvcv=2 smf=0"}
 	session = requests.Session()
 	session.headers.update(headers)
@@ -55,18 +84,23 @@ def main():
 		
 		urls.append({"url": url, "timestamp": timestamp})
 	
-	print("grabbing noritake product pages from the wayback machine")
+	print(f"grabbing {len(urls)} noritake product pages from the wayback machine")
 	urls = [urls[16], urls[17]] # small test list
 	spec_codes=[]
-	for url in urls:
-		page = session.get(wbm_url.format(url["timestamp"], url["url"]))
-		soup = BeautifulSoup(page.text, "html.parser")
+	loop = asyncio.new_event_loop()
+	asyncio.set_event_loop(loop)
+	pages = loop.run_until_complete(fast_downloader(urls, retries, headers, timeout, max_concurr_downloads))
+	
+	for page in pages:
+		soup = BeautifulSoup(page["page"], "html.parser")
 		
 		for form in soup.find_all("form"):
 			spec_code = form.find_all("input")
 			for input1 in spec_code:
 				if input1.get("name")=="spec_code":
-					spec_codes.append({input1.get("value"): url["url"]}) # dict so we don't get dupes
+					spec_codes.append({input1.get("value"): page["url"]}) # dict so we don't get dupes
+		time.sleep(0.5) # be nice to the IA ^-^
+	writemsg('\n')
 	
 	print("downloading files from noritake's servers (bypass login >.>)")
 	for spec_code in spec_codes:
