@@ -107,10 +107,11 @@ def main():
 			spec_dl = get_specdl_file(session, key)
 		spec_ext = splitext(spec_dl["filename"])
 		existing_files = find_files(normal_downloads_dir, spec_ext[1])
+		
 		isDuplicate=False
 		for file in existing_files:
 			filename = split(file)[1]
-			if filename==spec_dl["filename"]: # find if our file is a duplicate of one on disk
+			if filename==spec_dl["filename"]: # find if our file is a duplicate of one already on disk
 				isDuplicate=True
 				break
 		if isDuplicate:
