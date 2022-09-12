@@ -16,3 +16,7 @@ https://www.noritake-itron.jp/contact/spec_dl_func_en.php?code=cu16029-te200k
 
 https://www.noritake-itron.jp/cs/dl_spec/
 
+/datasheets/ is the onepage downloader
+/products/ is the searching downloader
+/wbm_datasheet_ids/ is the files from the ids mentioned in the wbm, skipping duplicate filenames (maybe I should've checked if the contents also matched)
+//damn none of the wbm ones are actually unique
